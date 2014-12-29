@@ -4,25 +4,49 @@
 
 angular.module('raw.controllers', [])
 
-  .controller('RawCtrl', function ($scope, dataService) {
-
+  .controller('RawCtrl', function ($scope, $http, dataService) {
+    //var local_samples = false;
+    var remote_samples_url = $('body').data('sample-url');
+    if (!remote_samples_url) {
     $scope.samples = [
       { title : 'Cars (multivariate)', url : 'data/multivariate.csv' },
       { title : 'Movies (dispersions)', url : 'data/dispersions.csv' },
       { title : 'Music (flows)', url : 'data/flows.csv' },
       { title : 'Cocktails (correlations)', url : 'data/correlations.csv' }
     ]
+    } else {
+      $http.jsonp(remote_samples_url + '?callback=JSON_CALLBACK').then(
+        function(res) {
+          $scope.samples = res.data;
+        },
+        function(error) {
+          alert(error.status);
+        }
+      );
+    }
 
     $scope.$watch('sample', function (sample){
       if (!sample) return;
-      dataService.loadSample(sample.url).then(
-        function(data){
-          $scope.text = data;
-        }, 
-        function(error){
-          $scope.error = error;
-        }
-      );
+      if (!remote_samples_url) {
+        dataService.loadSample(sample.url).then(
+          function(data){
+            $scope.text = data;
+          }
+        );
+      } else {
+        dataService.loadSampleJson(sample.url + '?callback=JSON_CALLBACK').then(
+          function(res){
+              $scope.text = '';
+            for(var k in res) {
+              $scope.text += res[k] + '\n';
+            }
+          }, 
+          function(error){
+            $scope.error = error;
+            alert(error.status);
+          }
+        );
+      }
     });
 
     // init

@@ -21,6 +21,19 @@ angular.module('raw.services', [])
 		      return deferred.promise;
 		    },
 
+		    loadSampleJson : function(sample){
+		      var deferred = $q.defer();
+		      $http.jsonp(sample)
+			      .then(function(response){
+			          deferred.resolve(response.data);
+			      },
+			      function(){
+			          deferred.reject("An error occured while getting sample (" + sample.title + ")");
+			      });
+
+		      return deferred.promise;
+		    },
+
 		    debounce : function (func, wait, immediate) {
 			    var timeout;
 			    var deferred = $q.defer();
